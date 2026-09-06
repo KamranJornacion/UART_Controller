@@ -1,0 +1,17 @@
+UART Controller
+
+1. One Tx
+2. One Rx
+
+3. Assume common clock frequency
+    a. Common baud rates: 9600, 115200, 4800, 19200, 38400, 57600
+4. Assume common frame structure
+    a. 7-9 data bits
+    b. Single optional parity bit at the end (odd/even parity 1's)
+    c. Idle on 1
+    d. Drop to 0 indicates Rx
+
+Optional:
+1. Cache?
+2. Metastability Handling
+3. Should Rx operate at 2x frequency? Blocks against immediate spikes
