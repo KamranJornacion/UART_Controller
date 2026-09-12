@@ -1,5 +1,5 @@
 
-module tx (
+module tx #(parameter WIDTH = 8)(
     input data_in,
     input tx_clk,
     input rst,
@@ -8,16 +8,32 @@ module tx (
 );
 
 localparam IDLE = 1'b0;
-localparam Tx   = 1'b1;
+localparam TX   = 1'b1;
 
-reg state;
+reg state,next_state;
+
+piso_shift_reg u_ps_sr(WIDTH)(
+    .clk(),
+    .se(),
+    .le(),
+    .rst(),
+    .data_in(),
+    .data_out()
+);
 
 //state update logic
 always @(posedge clk)begin
-    if(rst == 1'b1 || tx_en == 1'b0) 
+    if(rst) 
         state   <= IDLE;
     else 
-        state   <= Tx;
+        state   <= next_state;
+end
+
+always @(*)begin
+    if(~tx_en) 
+        next_state   = IDLE;
+    else 
+        next_state   = TX;
 end
 
 assign data_out = state ? data_in : 1'b1; //should i make this an always if statement to use the Tx vs Idle keywords?
