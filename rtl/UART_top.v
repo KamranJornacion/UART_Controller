@@ -16,6 +16,7 @@ rx u_rx(
     .rx_clk(clk),
     .rst(rst),
     .rx_en(rx_en),
+    .rx_req(),
     .data_out(data_from_rx)
 );
 
@@ -38,6 +39,7 @@ shift_reg u_sft_rg (WIDTH)(
 
 UART_mstr_ctrl u_mstr_ctrl(
 // mux_sel must come from here
+//sr se must come from here
 );
 
 assign data_to_sr = (mux_sel) ? data_from_rx : data_from_top;
@@ -45,6 +47,3 @@ assign data_to_sr = (mux_sel) ? data_from_rx : data_from_top;
 
 endmodule
 
-//TODO: implement shift reg inside RX, then mux RX and data in to shift_reg
-
-// Either create seperate shift reg or use generate statements to parameterize the current module

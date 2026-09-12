@@ -13,7 +13,7 @@ localparam TX   = 1'b1;
 reg state,next_state;
 
 piso_shift_reg u_ps_sr(WIDTH)(
-    .clk(),
+    .clk(tx_clk),
     .se(),
     .le(),
     .rst(),

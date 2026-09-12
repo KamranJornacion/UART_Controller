@@ -16,7 +16,7 @@ module piso_shift_reg #( parameter WIDTH = 8)(
 
     always @(posedge clk)begin
         if(rst)begin
-            data    <= 'b0;
+            data    <= 'b1;
         end else if(se) begin
             data[WIDTH-1] <=  1'b0;;
             generate
@@ -26,6 +26,8 @@ module piso_shift_reg #( parameter WIDTH = 8)(
             endgenerate
         end else if(le) begin
             data    <= data_in;
+        end else begin
+            data    <= 'b1;
         end
     end
 

@@ -13,9 +13,9 @@ UART Controller
 5. UART reads from its data reg (8 bits most common) and sends it over
     a. Any data packetization form 32 down to 8 is done externally from the UART by something like firmware or a DMA
     b. Single packets sent at a time
-6. Assumed only Tx or Rx one at a time
+6. Tx and Rx can operate independently, leave handling of rx/tx to external control
 
 Optional:
 1. Cache?
 2. Metastability Handling
-3. Should Rx operate at 2x frequency? Blocks against immediate spikes
+3. Should Rx operate at 4x frequency? Blocks against immediate spikes
