@@ -1,6 +1,6 @@
 
 module tx #(parameter WIDTH = 8)(
-    input data_in,
+    input [WIDTH-1:0] data_in,
     input tx_clk,
     input rst,
     input tx_en,    //ctrl signal from top ctrllr
@@ -8,17 +8,22 @@ module tx #(parameter WIDTH = 8)(
 );
 
 localparam IDLE = 1'b0;
-localparam TX   = 1'b1;
+localparam TX_START   = 1'b1;
+localparam TX = 2'b10;
 
-reg state,next_state;
+reg [1:0] state,next_state;
+reg [$clog2(WIDTH)-1:0] counter;
+
+wire le,se,tx_req;
+reg prev_edge;
 
 piso_shift_reg u_ps_sr(WIDTH)(
     .clk(tx_clk),
-    .se(),
-    .le(),
-    .rst(),
-    .data_in(),
-    .data_out()
+    .se(se),
+    .le(le),
+    .rst(rst),
+    .data_in(data_in),
+    .data_out(data_out)
 );
 
 //state update logic
@@ -30,12 +35,52 @@ always @(posedge clk)begin
 end
 
 always @(*)begin
-    if(~tx_en) 
-        next_state   = IDLE;
-    else 
-        next_state   = TX;
+   case(state)
+   IDLE: begin
+      if(tx_req)begin
+      next_state = TX_START;
+      le = 1'b1;
+      end else begin
+      next_state = IDLE; 
+      le = 1'b0;
+      end
+      se = 1'b0;
+
+   end
+   TX_START: begin
+      next_state = TX;
+      le = 1'b0;
+      se = 1'b1;
+   end
+   TX: begin
+      if(counter < WIDTH)begin 
+        next_state = TX;
+        se = 1'b1;
+      end else begin
+        next_state = IDLE;
+        se = 1'b0;
+      end
+      le = 1'b0;
+   end
+   default:
+   endcase
 end
 
-assign data_out = state ? data_in : 1'b1; //should i make this an always if statement to use the Tx vs Idle keywords?
+ //posedge detector
+always @(posedge rx_clk)begin
+    prev_edge <= tx_en;
+end
 
+assign tx_req = tx_en & ~prev_edge;
+
+//counter
+always @(posedge rx_clk) begin
+    if (rst)begin
+        counter <= 'b0;
+    end else if(se) begin
+        counter <= counter +1;
+    end else begin
+        counter <= 'b0;
+    end
+end
 endmodule
