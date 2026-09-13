@@ -1,0 +1,15 @@
+
+**
+!*/
+
+
+!.gitignore
+!rtl/
+!rtl/**
+!simulation/
+!simulation/questa/
+!simulation/questa/tb/
+!simulation/questa/tb/**
+!specs/
+!specs/**
+!*.pdf

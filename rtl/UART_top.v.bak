@@ -3,13 +3,13 @@ module UART_top #( parameter WIDTH = 8)(
     input [WIDTH-1:0] data_from_top,
     input clk,
     input rx_data_in,
-    input rst, rx_en, tx_en,
-	output rx_req,
+    input rst, rx_en, tx_en, rx_req,
     output [WIDTH-1:0] data_to_top,
     output tx_data_out
 );
 
 
+wire [WIDTH-1:0] data_to_tx, data_from_rx;
 
 
 rx  #(.WIDTH(WIDTH)) u_rx(
@@ -18,11 +18,11 @@ rx  #(.WIDTH(WIDTH)) u_rx(
     .rst(rst),
     .rx_en(rx_en),
     .rx_req(rx_req),
-    .data_out(data_to_top)
+    .data_out(data_from_rx)
 );
 
 tx  #(.WIDTH(WIDTH)) u_tx(
-    .data_in(data_from_top),
+    .data_in(data_to_tx),
     .tx_clk(clk),
     .rst(rst),
     .tx_en(tx_en),

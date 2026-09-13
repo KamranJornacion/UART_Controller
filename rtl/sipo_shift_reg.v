@@ -10,19 +10,17 @@ module sipo_shift_reg #( parameter WIDTH = 8)(
 
 
     reg [WIDTH-1:0] data;
-    genvar i;
+    integer i;
 
 
     always @(posedge clk)begin
         if(rst)begin
-            data    <= 'b0;
+            data    <= {WIDTH{1'b0}};
         end else if(se) begin
             data[WIDTH-1] <=  data_in;
-            generate
-                for (i = WIDTH-1; i>0; i--)begin
-                        data[i-1] <=  data[i];
-                end
-            endgenerate
+            for (i = WIDTH-1; i>0; i = i - 1)begin
+                    data[i-1] <=  data[i];
+            end
         end
     end
 

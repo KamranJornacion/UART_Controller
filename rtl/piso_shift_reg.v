@@ -11,23 +11,21 @@ module piso_shift_reg #( parameter WIDTH = 8)(
 
 
     reg [WIDTH-1:0] data;
-    genvar i;
+    integer i;
 
 
     always @(posedge clk)begin
         if(rst)begin
-            data    <= 'b1;
+            data    <= {WIDTH{1'b1}};
         end else if(se) begin
-            data[WIDTH-1] <=  1'b0;;
-            generate
-                for (i = WIDTH-1; i>0; i--)begin
+            data[WIDTH-1] <=  1'b0;
+                for (i = WIDTH-1; i>0; i = i - 1)begin
                         data[i-1] <=  data[i];
                 end
-            endgenerate
         end else if(le) begin
             data    <= data_in;
         end else begin
-            data    <= 'b1;
+            data    <= {WIDTH{1'b1}};
         end
     end
 

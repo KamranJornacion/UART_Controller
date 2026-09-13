@@ -17,7 +17,7 @@ module rx #(parameter WIDTH = 8)(
 
     wire [WIDTH-1:0] sr_data_out;
 
-    sipo_shift_reg u_sft_rg (WIDTH)(
+    sipo_shift_reg #(.WIDTH(WIDTH)) u_sft_rg (
     .clk(rx_clk),
     .se(count_en),
     .rst(rst),
@@ -36,12 +36,13 @@ module rx #(parameter WIDTH = 8)(
     always @(*) begin
         case(state)
             IDLE: begin 
-                if(rx_en && rx_req)
+                if(rx_en && rx_req) begin
                     next_state = RX;
                     count_en = 1'b1;
-                else
+                end else begin
                     next_state = IDLE;
                     count_en = 1'b0;
+                end
             end
             RX: begin 
                 if (rx_en && (counter < WIDTH))begin

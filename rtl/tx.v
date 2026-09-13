@@ -14,10 +14,11 @@ localparam TX = 2'b10;
 reg [1:0] state,next_state;
 reg [$clog2(WIDTH)-1:0] counter;
 
-wire le,se,tx_req;
+wire tx_req;
 reg prev_edge;
+reg le,se;
 
-piso_shift_reg u_ps_sr(WIDTH)(
+piso_shift_reg  #(.WIDTH(WIDTH)) u_ps_sr(
     .clk(tx_clk),
     .se(se),
     .le(le),
@@ -27,7 +28,7 @@ piso_shift_reg u_ps_sr(WIDTH)(
 );
 
 //state update logic
-always @(posedge clk)begin
+always @(posedge tx_clk)begin
     if(rst) 
         state   <= IDLE;
     else 
@@ -62,19 +63,23 @@ always @(*)begin
       end
       le = 1'b0;
    end
-   default:
+   default: begin
+        next_state = IDLE;
+        le = 1'b0;
+        se = 1'b0;
+   end
    endcase
 end
 
  //posedge detector
-always @(posedge rx_clk)begin
+always @(posedge tx_clk)begin
     prev_edge <= tx_en;
 end
 
 assign tx_req = tx_en & ~prev_edge;
 
 //counter
-always @(posedge rx_clk) begin
+always @(posedge tx_clk) begin
     if (rst)begin
         counter <= 'b0;
     end else if(se) begin
