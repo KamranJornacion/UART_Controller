@@ -13,3 +13,4 @@
 !specs/
 !specs/**
 !*.pdf
+!*.md
