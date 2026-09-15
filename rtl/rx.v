@@ -13,7 +13,7 @@ module rx #(parameter WIDTH = 8)(
 
     reg state, next_state;
     reg prev_edge, count_en;
-    reg [$clog2(WIDTH):0] counter;
+    reg [$clog2(WIDTH)-1:0] counter;
 
     wire [WIDTH-1:0] sr_data_out;
 
@@ -45,7 +45,7 @@ module rx #(parameter WIDTH = 8)(
                 end
             end
             RX: begin 
-                if (rx_en && (counter < WIDTH))begin
+                if (rx_en && (counter < WIDTH-1))begin
                     next_state = RX; 
                     count_en = 1'b1;
                 end else begin

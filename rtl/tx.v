@@ -54,7 +54,7 @@ always @(*)begin
       se = 1'b1;
    end
    TX: begin
-      if(counter < WIDTH)begin 
+      if(counter < WIDTH-1)begin 
         next_state = TX;
         se = 1'b1;
       end else begin
