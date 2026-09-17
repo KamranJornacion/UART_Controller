@@ -2,30 +2,51 @@
 module rx #(parameter WIDTH = 8)(
     input   data_in,
     input   rx_clk,
+    input   tx_clk,
     input   rst,
-    input   rx_en,    //ctrl signal from top ctrllr
+    input   rx_en,
     output  rx_req,   
     output  [WIDTH-1:0] data_out
 );
 
-    localparam IDLE = 1'b0;
-    localparam RX_START = 1'b1;
-    localparam RX   = 2'b10;
+    localparam IDLE = 3'd0;
+    localparam RX_START_PRECHECK = 3'd1;
+    localparam RX_START_CHECK = 3'd2;
+    localparam RX_START = 3'd3;
+    localparam RX   = 3'd4;
 
 
-    reg [1:0] state, next_state;
+    reg [2:0] state, next_state;
     reg prev_edge, count_en;
-    reg [$clog2(WIDTH)-1:0] counter;
-
+    reg [1:0] tck;
+    
+    wire [15:0] smpl_counter;
+    wire [WIDTH-1:0] bit_counter;
+    wire bit_ce;
     wire [WIDTH-1:0] sr_data_out;
 
     sipo_shift_reg #(.WIDTH(WIDTH)) u_sft_rg (
-    .clk(rx_clk),
+    .clk(tx_clk),
     .se(count_en),
     .rst(rst),
     .data_in(data_in),
     .data_out(sr_data_out)
     );
+
+    counter #(.LENGTH($clog2(WIDTH))) u_bit_cntr (
+        .clk(tx_clk),
+        .ce(bit_ce),
+        .rst(rst),
+        .count(bit_counter)
+    );
+
+    counter #(.LENGTH(16)) u_smpl_cntr (
+        .clk(rx_clk),
+        .ce(rx_en),
+        .rst(rst),
+        .count(smpl_counter)
+    );
+
 
     //state_update logic
     always @(posedge rx_clk) begin
@@ -37,21 +58,46 @@ module rx #(parameter WIDTH = 8)(
 
     always @(*) begin
         case(state)
-            IDLE: begin 
+            IDLE: begin
+                tck = 2'b0;
+                count_en = 1'b0;
                 if(rx_en && rx_req) begin
                     next_state = RX_START;
-                    count_en = 1'b0;
                 end else begin
                     next_state = IDLE;
-                    count_en = 1'b0;
                 end
             end
-            RX_START:begin
-                next_state = RX;
-                count_en = 1'b1;
+            RX_START_PRECHECK:begin
+                count_en = 1'b0;
+                tck = 2'b0;
+                if(smpl_counter == 4'd5)
+                    next_state = RX_START_CHECK;
+                else
+                    next_state = RX_START_PRECHECK;
             end
-            RX: begin 
-                if (rx_en && (counter < WIDTH-1))begin
+            RX_START_CHECK:begin
+                count_end = 1'b0;
+                if((smpl_counter == 4'd8)&&(tck[1]))
+                    next_state = RX_START;
+                    tck = 2'b0;
+                else if(smpl_counter == 4'd8)
+                    next_state = IDLE;
+                    tck = 2'b0;
+                else
+                    tck = tck + ~data_in;
+            end
+            RX_START:begin
+                tck = 2'b0;
+                if(smpl_counter == 4'd15)
+                    next_state = RX;
+                    count_en = 1'b1;
+                else
+                    next_state = RX_START;
+                    count_en = 1'b0;
+            end
+            RX: begin
+                tck = 2'b0;
+                if (counter < WIDTH-1)begin
                     next_state = RX; 
                     count_en = 1'b1;
                 end else begin
@@ -62,12 +108,10 @@ module rx #(parameter WIDTH = 8)(
             default: begin 
                 next_state = IDLE;
                 count_en = 1'b0;
+                tck = 2'b0;
             end
         endcase
     end
-
-    assign data_out = sr_data_out;
-    
 
     //negedge detector
     always @(posedge rx_clk)begin
@@ -76,13 +120,7 @@ module rx #(parameter WIDTH = 8)(
 
     assign rx_req = ~data_in & prev_edge;
 
-    //counter
-    always @(posedge rx_clk) begin
-        if (rst)begin
-            counter <= 'b0;
-        end else begin
-            counter <= counter +1;
-        end
-    end
+    assign bit_ce = (state == RX) && (smpl_cntr == 4'd15);
+    assign data_out = sr_data_out;
 
 endmodule
