@@ -9,9 +9,11 @@ module rx #(parameter WIDTH = 8)(
 );
 
     localparam IDLE = 1'b0;
-    localparam RX   = 1'b1;
+    localparam RX_START = 1'b1;
+    localparam RX   = 2'b10;
 
-    reg state, next_state;
+
+    reg [1:0] state, next_state;
     reg prev_edge, count_en;
     reg [$clog2(WIDTH)-1:0] counter;
 
@@ -37,12 +39,16 @@ module rx #(parameter WIDTH = 8)(
         case(state)
             IDLE: begin 
                 if(rx_en && rx_req) begin
-                    next_state = RX;
-                    count_en = 1'b1;
+                    next_state = RX_START;
+                    count_en = 1'b0;
                 end else begin
                     next_state = IDLE;
                     count_en = 1'b0;
                 end
+            end
+            RX_START:begin
+                next_state = RX;
+                count_en = 1'b1;
             end
             RX: begin 
                 if (rx_en && (counter < WIDTH-1))begin
