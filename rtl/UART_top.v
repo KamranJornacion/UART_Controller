@@ -1,7 +1,7 @@
 
 module UART_top #( parameter WIDTH = 8)(
     input [WIDTH-1:0] data_from_top,
-    input clk,
+    input clk, clk_x16,
     input rx_data_in,
     input rst, rx_en, tx_en,
 	output rx_req,
@@ -10,11 +10,10 @@ module UART_top #( parameter WIDTH = 8)(
 );
 
 
-
-
 rx  #(.WIDTH(WIDTH)) u_rx(
     .data_in(rx_data_in),
-    .rx_clk(clk),
+    .rx_clk(clk_x16),
+    .tx_clk(clk)
     .rst(rst),
     .rx_en(rx_en),
     .rx_req(rx_req),
