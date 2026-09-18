@@ -4,10 +4,12 @@ localparam integer WIDTH = 8;
 localparam [WIDTH-1:0] PACKET = 8'b10111010;
 
 reg clk;
+reg clk_x16;
 reg rst;
 reg rx_en, tx_en;
 
 wire rx_req;
+wire rx_recv;
 
 reg rx_data_in;
 reg [7:0] tx_data_in;
@@ -45,24 +47,27 @@ task rx_byte();
     repeat (5) @(posedge clk);
 endtask
 
-//System clock
+// System clocks: tx uses clk and rx uses the 16x oversampling clock.
 always #10 clk = ~clk;
+always #0.625 clk_x16 = ~clk_x16;
 
 UART_top #(8) u_dut(
     .data_from_top(tx_data_in),
     .clk(clk),
+    .clk_x16(clk_x16),
     .rx_data_in(rx_data_in),
-    .rst(rst), 
-    .rx_en(rx_en), 
+    .rst(rst),
+    .rx_en(rx_en),
     .tx_en(tx_en),
-	.rx_req(rx_req),
+    .rx_req(rx_req),
+    .rx_recv(rx_recv),
     .data_to_top(rx_data_out),
     .tx_data_out(tx_data_out)
 );
 
 initial begin
-
     clk = 1'b0;
+    clk_x16 = 1'b0;
     rx_en = 1'b0;
     tx_en = 1'b0;
     tx_data_in = 8'b0;
@@ -75,16 +80,15 @@ initial begin
     rst = 1'b0;
 
     tx_byte();
-
     rx_byte();
 
+    if (rx_data_out == PACKET) begin
+        $display("PASS: received %b", rx_data_out);
+    end else begin
+        $display("FAIL: expected %b, got %b", PACKET, rx_data_out);
+    end
+
     $finish;
-
 end
-
-
-
-
-
 
 endmodule

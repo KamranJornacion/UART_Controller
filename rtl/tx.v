@@ -12,7 +12,7 @@ localparam TX_START   = 1'b1;
 localparam TX = 2'b10;
 
 reg [1:0] state,next_state;
-reg [$clog2(WIDTH)-1:0] counter;
+wire [$clog2(WIDTH)-1:0] bit_counter;
 
 wire tx_req;
 reg prev_edge;
@@ -25,6 +25,13 @@ piso_shift_reg  #(.WIDTH(WIDTH)) u_ps_sr(
     .rst(rst),
     .data_in(data_in),
     .data_out(data_out)
+);
+
+counter #(.LENGTH($clog2(WIDTH))) u_bit_cntr (
+        .clk(tx_clk),
+        .ce(se),
+        .rst(rst),
+        .count(bit_counter)
 );
 
 //state update logic
@@ -54,7 +61,7 @@ always @(*)begin
       se = 1'b1;
    end
    TX: begin
-      if(counter < WIDTH-1)begin 
+      if(bit_counter < WIDTH-1)begin 
         next_state = TX;
         se = 1'b1;
       end else begin
@@ -78,14 +85,4 @@ end
 
 assign tx_req = tx_en & ~prev_edge;
 
-//counter
-always @(posedge tx_clk) begin
-    if (rst)begin
-        counter <= 'b0;
-    end else if(se) begin
-        counter <= counter +1;
-    end else begin
-        counter <= 'b0;
-    end
-end
 endmodule
