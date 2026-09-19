@@ -19,11 +19,11 @@ module rx #(parameter WIDTH = 8)(
 
 
     reg [2:0] state, next_state;
-    reg prev_edge, count_en, smpl_en;
-    reg [1:0] tck;
+    reg prev_edge, count_en, smpl_en, vote_en, vote_rst;
+    wire [1:0] vote;
     
-    wire [15:0] smpl_counter;
-    wire [WIDTH-1:0] bit_counter;
+    wire [3:0] smpl_counter;
+    wire [$clog2(WIDTH)-1:0] bit_counter;
     wire bit_ce;
     wire [WIDTH-1:0] sr_data_out;
 
@@ -42,11 +42,18 @@ module rx #(parameter WIDTH = 8)(
         .count(bit_counter)
     );
 
-    counter #(.LENGTH(16)) u_smpl_cntr (
+    counter #(.LENGTH(4)) u_smpl_cntr (
         .clk(rx_clk),
         .ce(smpl_en),
         .rst(rst),
         .count(smpl_counter)
+    );
+
+    counter #(.LENGTH(2)) u_vote_cntr(
+        .clk(rx_clk),
+        .ce(vote_en),
+        .rst(vote_rst),
+        .count(vote)
     );
 
 
@@ -61,11 +68,12 @@ module rx #(parameter WIDTH = 8)(
     always @(*) begin
         case(state)
             IDLE: begin
-                tck = 2'b0;
+                vote_en= 1'b0;
+                vote_rst = 1'b1;
                 count_en = 1'b0;
                 rx_recv = 1'b0;
                 if(rx_en && rx_req) begin
-                    next_state = RX_START;
+                    next_state = RX_START_PRECHECK;
                     smpl_en = 1'b1;
                 end else begin
                     next_state = IDLE;
@@ -75,7 +83,8 @@ module rx #(parameter WIDTH = 8)(
             RX_START_PRECHECK:begin
                 count_en = 1'b0;
                 smpl_en = 1'b1;                
-                tck = 2'b0;
+                vote_en= 1'b0;
+                vote_rst = 1'b0;
                 rx_recv = 1'b0;
                 if(smpl_counter == 4'd5)
                     next_state = RX_START_CHECK;
@@ -86,21 +95,25 @@ module rx #(parameter WIDTH = 8)(
                 count_en = 1'b0;
                 smpl_en = 1'b1;
                 rx_recv = 1'b0;
-                if((smpl_counter == 4'd8)&&(tck[1]))begin
+                if((smpl_counter == 4'd8)&&(vote[1]))begin
                     next_state = RX_START;
-                    tck = 2'b0;
+                    vote_en = 1'b0;
+                    vote_rst = 1'b1;
                 end else if(smpl_counter == 4'd8) begin
                     next_state = IDLE;
-                    tck = 2'b0;
+                    vote_en = 1'b0;
+                    vote_rst = 1'b1;
                 end else begin
-                    tck = tck + ~data_in;
+                    vote_en = ~data_in;
                     next_state = RX_START_CHECK;
+                    vote_rst = 1'b0;
                 end
             end
             RX_START:begin
-                tck = 2'b0;
+                vote_en = 1'b0;
                 smpl_en = 1'b1;
                 rx_recv = 1'b0;
+                vote_rst = 1'b0;
                 if(smpl_counter == 4'd15)begin
                     next_state = RX;
                     count_en = 1'b1;
@@ -110,7 +123,8 @@ module rx #(parameter WIDTH = 8)(
                 end
             end
             RX: begin
-                tck = 2'b0;
+                vote_en = 1'b0;
+                vote_rst = 1'b0;
                 if (smpl_counter == 4'd7) begin
                     count_en =1'b1;
                     next_state  = RX;
@@ -133,8 +147,9 @@ module rx #(parameter WIDTH = 8)(
                 next_state = IDLE;
                 count_en = 1'b0;
                 smpl_en = 1'b1;
-                tck = 2'b0;
+                vote_en = 1'b0;
                 rx_recv = 1'b0;
+                vote_rst = 1'b0;
             end
         endcase
     end

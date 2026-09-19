@@ -28,6 +28,5 @@ tx  #(.WIDTH(WIDTH)) u_tx(
     .data_out(tx_data_out)
 );
 
-
 endmodule
 
