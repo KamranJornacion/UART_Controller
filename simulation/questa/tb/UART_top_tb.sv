@@ -1,4 +1,6 @@
 module tb();
+timeunit 1ns;
+timeprecision 1ps;
 
 localparam integer WIDTH = 8;
 localparam [WIDTH-1:0] PACKET = 8'b00111010;
@@ -8,7 +10,6 @@ reg clk_x16;
 reg rst;
 reg rx_en, tx_en;
 
-wire rx_req;
 wire rx_recv;
 
 reg rx_data_in;
@@ -48,8 +49,8 @@ task rx_byte();
 endtask
 
 // System clocks: tx uses clk and rx uses the 16x oversampling clock.
-always #10 clk = ~clk;
-always #0.625 clk_x16 = ~clk_x16;
+always #50 clk = ~clk; //T =100 f =1/100
+always #3.125 clk_x16 = ~clk_x16; //T=100/16 f =16/100
 
 UART_top #(8) u_dut(
     .data_from_top(tx_data_in),
@@ -59,7 +60,6 @@ UART_top #(8) u_dut(
     .rst(rst),
     .rx_en(rx_en),
     .tx_en(tx_en),
-    .rx_req(rx_req),
     .rx_recv(rx_recv),
     .data_to_top(rx_data_out),
     .tx_data_out(tx_data_out)
