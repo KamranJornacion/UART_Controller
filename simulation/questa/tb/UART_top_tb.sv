@@ -1,7 +1,7 @@
 module tb();
 
 localparam integer WIDTH = 8;
-localparam [WIDTH-1:0] PACKET = 8'b10111010;
+localparam [WIDTH-1:0] PACKET = 8'b00111010;
 
 reg clk;
 reg clk_x16;

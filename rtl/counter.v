@@ -4,7 +4,6 @@ module counter #(parameter LENGTH = 4) (
     input rst,
     output [LENGTH-1:0] count
 );
-
     reg [LENGTH-1:0] counter;
     assign count = counter;
 
@@ -15,5 +14,4 @@ module counter #(parameter LENGTH = 4) (
             counter <= counter +1;
         end 
     end
-
 endmodule

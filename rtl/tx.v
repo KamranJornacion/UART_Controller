@@ -18,7 +18,7 @@ wire tx_req;
 reg prev_edge;
 reg le,se;
 
-piso_shift_reg  #(.WIDTH(WIDTH)) u_ps_sr(
+tx_piso_shift_reg  #(.WIDTH(WIDTH)) u_ps_sr(
     .clk(tx_clk),
     .se(se),
     .le(le),
@@ -63,11 +63,10 @@ always @(*)begin
    TX: begin
       if(bit_counter < WIDTH-1)begin 
         next_state = TX;
-        se = 1'b1;
       end else begin
         next_state = IDLE;
-        se = 1'b0;
       end
+      se = 1'b1;
       le = 1'b0;
    end
    default: begin

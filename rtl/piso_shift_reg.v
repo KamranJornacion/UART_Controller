@@ -1,6 +1,6 @@
 
-
-module piso_shift_reg #( parameter WIDTH = 8)(
+//This Piso shift reg holds an inactive 1 to support tx idle behaviour
+module tx_piso_shift_reg #( parameter WIDTH = 8)(
     input clk,
     input se,
     input le,
@@ -8,8 +8,6 @@ module piso_shift_reg #( parameter WIDTH = 8)(
     input [WIDTH-1:0] data_in,
     output data_out
 );
-
-
     reg [WIDTH-1:0] data;
     integer i;
 
@@ -28,6 +26,4 @@ module piso_shift_reg #( parameter WIDTH = 8)(
     end
 
     assign data_out =   data[0];
-
-
 endmodule

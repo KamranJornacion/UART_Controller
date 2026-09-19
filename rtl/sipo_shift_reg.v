@@ -7,8 +7,6 @@ module sipo_shift_reg #( parameter WIDTH = 8)(
     input data_in,
     output [WIDTH-1:0] data_out
 );
-
-
     reg [WIDTH-1:0] data;
     integer i;
 
@@ -25,9 +23,5 @@ module sipo_shift_reg #( parameter WIDTH = 8)(
     end
 
     assign data_out =   data;
-
-
-    
-
 
 endmodule
