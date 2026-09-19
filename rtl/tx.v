@@ -1,9 +1,8 @@
-
 module tx #(parameter WIDTH = 8)(
     input [WIDTH-1:0] data_in,
     input tx_clk,
     input rst,
-    input tx_en,    //ctrl signal from top ctrllr
+    input tx_en,
     output data_out
 );
 
@@ -14,6 +13,7 @@ localparam TX = 2'b10;
 reg [1:0] state,next_state;
 wire [$clog2(WIDTH)-1:0] bit_counter;
 
+wire sr_data_out;
 wire tx_req;
 reg prev_edge;
 reg le,se;
@@ -24,7 +24,7 @@ piso_shift_reg  #(.WIDTH(WIDTH)) u_ps_sr(
     .le(le),
     .rst(rst),
     .data_in(data_in),
-    .data_out(data_out)
+    .data_out(sr_data_out)
 );
 
 counter #(.LENGTH($clog2(WIDTH))) u_bit_cntr (
@@ -58,7 +58,7 @@ always @(*)begin
    TX_START: begin
       next_state = TX;
       le = 1'b0;
-      se = 1'b1;
+      se = 1'b0;
    end
    TX: begin
       if(bit_counter < WIDTH-1)begin 
@@ -84,5 +84,6 @@ always @(posedge tx_clk)begin
 end
 
 assign tx_req = tx_en & ~prev_edge;
+assign data_out = (state == TX_START) ? 1'b0:sr_data_out; 
 
 endmodule

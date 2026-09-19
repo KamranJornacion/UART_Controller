@@ -18,14 +18,12 @@ module piso_shift_reg #( parameter WIDTH = 8)(
         if(rst)begin
             data    <= {WIDTH{1'b1}};
         end else if(se) begin
-            data[WIDTH-1] <=  1'b0;
+            data[WIDTH-1] <=  1'b1;
                 for (i = WIDTH-1; i>0; i = i - 1)begin
                         data[i-1] <=  data[i];
                 end
         end else if(le) begin
             data    <= data_in;
-        end else begin
-            data    <= {WIDTH{1'b1}};
         end
     end
 
